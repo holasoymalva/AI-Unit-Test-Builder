@@ -1,0 +1,333 @@
+---
+description: Review and refactor generated unit tests for improved quality and coverage
+globs: 
+alwaysApply: false
+---
+# Rule: Test Refactoring and Optimization
+
+## Goal
+
+To guide an AI assistant in reviewing and improving generated unit tests by optimizing structure, enhancing coverage, removing redundancy, and following testing best practices.
+
+## Prerequisites
+
+- Generated unit test file (from `generate-unit-test.mdc`)
+- Original source code file
+- Function analysis document (optional but helpful)
+
+## Process
+
+1. **Analyze Current Tests:** Review the existing test file for quality and coverage
+2. **Identify Improvements:** Find areas for optimization, missing coverage, or redundancy
+3. **Refactor Structure:** Optimize test organization and readability
+4. **Enhance Coverage:** Add missing test scenarios
+5. **Optimize Performance:** Improve test efficiency and reliability
+6. **Update Documentation:** Add or improve test comments and descriptions
+
+## Analysis Checklist
+
+### Test Structure Review
+- [ ] Are tests logically grouped and organized?
+- [ ] Are test names descriptive and follow conventions?
+- [ ] Is there proper setup and teardown?
+- [ ] Are tests independent of each other?
+
+### Coverage Assessment
+- [ ] Are all code paths tested?
+- [ ] Are edge cases adequately covered?
+- [ ] Are error scenarios tested?
+- [ ] Are async operations properly tested?
+
+### Code Quality
+- [ ] Are there duplicate test patterns that can be abstracted?
+- [ ] Are mocks properly configured and reset?
+- [ ] Are test utilities reusable?
+- [ ] Is the code readable and maintainable?
+
+### Performance & Reliability
+- [ ] Are tests fast and efficient?
+- [ ] Are there any flaky or unreliable tests?
+- [ ] Are async operations properly awaited?
+- [ ] Are timeouts appropriately set?
+
+## Refactoring Strategies
+
+### 1. Test Organization
+
+#### Before (Poor Organization)
+```javascript
+describe('UserService', () => {
+  it('should create user', () => { /* test */ });
+  it('should handle invalid email in create', () => { /* test */ });
+  it('should delete user', () => { /* test */ });
+  it('should handle invalid id in delete', () => { /* test */ });
+});
+```
+
+#### After (Better Organization)
+```javascript
+describe('UserService', () => {
+  describe('createUser', () => {
+    it('should successfully create user with valid data', () => { /* test */ });
+    it('should throw error when email is invalid', () => { /* test */ });
+    it('should throw error when required fields are missing', () => { /* test */ });
+  });
+
+  describe('deleteUser', () => {
+    it('should successfully delete existing user', () => { /* test */ });
+    it('should throw error when user ID is invalid', () => { /* test */ });
+    it('should handle user not found scenario', () => { /* test */ });
+  });
+});
+```
+
+### 2. Test Data Management
+
+#### Create Reusable Test Data
+```javascript
+const testData = {
+  validUser: { id: 1, name: 'John Doe', email: 'john@test.com' },
+  invalidEmails: ['invalid', '@test.com', 'test@', ''],
+  edgeCases: {
+    emptyString: '',
+    nullValue: null,
+    undefinedValue: undefined,
+    longString: 'a'.repeat(1000),
+  },
+};
+
+const createUser = (overrides = {}) => ({
+  ...testData.validUser,
+  ...overrides,
+});
+```
+
+### 3. Mock Optimization
+
+#### Centralized Mock Setup
+```javascript
+// Mock configuration
+const mockApiClient = {
+  get: jest.fn(),
+  post: jest.fn(),
+  delete: jest.fn(),
+};
+
+jest.mock('./api-client', () => mockApiClient);
+
+describe('UserService', () => {
+  beforeEach(() => {
+    // Reset all mocks before each test
+    jest.clearAllMocks();
+  });
+
+  describe('createUser', () => {
+    it('should call API with correct parameters', () => {
+      mockApiClient.post.mockResolvedValue({ id: 1 });
+      
+      userService.createUser(testData.validUser);
+      
+      expect(mockApiClient.post).toHaveBeenCalledWith('/users', testData.validUser);
+    });
+  });
+});
+```
+
+### 4. Parameterized Tests
+
+#### Use Test Cases for Similar Scenarios
+```javascript
+describe('validateEmail', () => {
+  const invalidEmails = [
+    { input: '', expectedError: 'Email is required' },
+    { input: 'invalid', expectedError: 'Invalid email format' },
+    { input: '@test.com', expectedError: 'Invalid email format' },
+    { input: 'test@', expectedError: 'Invalid email format' },
+  ];
+
+  test.each(invalidEmails)(
+    'should throw "$expectedError" when email is "$input"',
+    ({ input, expectedError }) => {
+      expect(() => validateEmail(input)).toThrow(expectedError);
+    }
+  );
+});
+```
+
+### 5. Async Test Improvements
+
+#### Better Async Testing
+```javascript
+describe('fetchUserData', () => {
+  it('should return user data when API call succeeds', async () => {
+    const mockUserData = { id: 1, name: 'John' };
+    mockApiClient.get.mockResolvedValue(mockUserData);
+
+    const result = await fetchUserData(1);
+
+    expect(result).toEqual(mockUserData);
+    expect(mockApiClient.get).toHaveBeenCalledWith('/users/1');
+  });
+
+  it('should throw error when API call fails', async () => {
+    const mockError = new Error('Network error');
+    mockApiClient.get.mockRejectedValue(mockError);
+
+    await expect(fetchUserData(1)).rejects.toThrow('Network error');
+  });
+});
+```
+
+## Improvement Areas
+
+### 1. Missing Test Cases
+
+Look for and add:
+- **Boundary Value Tests:** Empty arrays, zero values, maximum limits
+- **Null/Undefined Handling:** Parameters that might be null or undefined
+- **Type Validation:** What happens with wrong parameter types
+- **State Dependencies:** Functions that depend on external state
+- **Concurrent Access:** Race conditions in async operations
+
+### 2. Test Descriptions
+
+#### Improve Test Names
+```javascript
+// Before: Vague
+it('should work with valid input', () => {});
+
+// After: Descriptive
+it('should return formatted user name when valid user object is provided', () => {});
+```
+
+### 3. Assertion Quality
+
+#### More Specific Assertions
+```javascript
+// Before: Generic
+expect(result).toBeDefined();
+
+// After: Specific
+expect(result).toEqual({
+  id: expect.any(Number),
+  name: 'John Doe',
+  email: 'john@test.com',
+  createdAt: expect.any(Date),
+});
+```
+
+### 4. Error Testing Enhancement
+
+```javascript
+describe('error handling', () => {
+  it('should throw ValidationError with specific message for invalid email', () => {
+    expect(() => createUser({ email: 'invalid' }))
+      .toThrow('Invalid email format: invalid');
+  });
+
+  it('should throw error with correct error code', () => {
+    try {
+      createUser({ email: 'invalid' });
+    } catch (error) {
+      expect(error).toBeInstanceOf(ValidationError);
+      expect(error.code).toBe('INVALID_EMAIL');
+    }
+  });
+});
+```
+
+## Performance Optimizations
+
+### 1. Test Setup Efficiency
+```javascript
+describe('UserService', () => {
+  let userService;
+  
+  beforeAll(() => {
+    // Expensive setup only once
+    userService = new UserService(mockConfig);
+  });
+
+  beforeEach(() => {
+    // Quick reset for each test
+    jest.clearAllMocks();
+  });
+});
+```
+
+### 2. Mock Optimization
+```javascript
+// Use jest.fn() factory for complex mock setup
+const createMockApiClient = () => ({
+  get: jest.fn().mockResolvedValue({}),
+  post: jest.fn().mockResolvedValue({}),
+  delete: jest.fn().mockResolvedValue({}),
+});
+```
+
+## Documentation Improvements
+
+### Add Test Documentation
+```javascript
+/**
+ * Test Suite: UserService
+ * 
+ * Tests the core user management functionality including:
+ * - User creation and validation
+ * - User retrieval and filtering
+ * - Error handling for invalid inputs
+ * 
+ * Mock Dependencies:
+ * - ApiClient: HTTP requests
+ * - Logger: Application logging
+ */
+describe('UserService', () => {
+  // Tests...
+});
+```
+
+## Quality Gates
+
+Before considering refactoring complete, ensure:
+
+### Coverage Metrics
+- Line coverage > 90%
+- Branch coverage > 85%
+- Function coverage = 100%
+
+### Test Quality
+- All tests pass consistently
+- No test interdependencies
+- Reasonable test execution time
+- Clear test failure messages
+
+### Maintainability
+- DRY principle applied
+- Clear test organization
+- Reusable test utilities
+- Well-documented complex scenarios
+
+## Final Output
+
+The refactored test file should include:
+
+1. **Improved Structure:** Logical grouping and clear hierarchy
+2. **Enhanced Coverage:** Additional test cases for missed scenarios
+3. **Optimized Performance:** Efficient setup and mock usage
+4. **Better Documentation:** Clear comments and descriptions
+5. **Maintainable Code:** Reusable utilities and consistent patterns
+
+## Instructions for AI
+
+1. **Analyze First:** Thoroughly review the existing test file
+2. **Prioritize Improvements:** Focus on the most impactful changes first
+3. **Maintain Functionality:** Don't break existing working tests
+4. **Explain Changes:** Document why specific refactoring decisions were made
+5. **Verify Coverage:** Ensure new tests actually improve coverage
+6. **Test the Tests:** Make sure refactored tests still pass
+
+## Output
+
+- **Format:** Improved test file with same structure as input
+- **Location:** Replace the existing test file
+- **Documentation:** Include comments explaining major refactoring decisions

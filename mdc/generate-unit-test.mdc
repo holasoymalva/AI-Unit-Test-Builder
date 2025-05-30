@@ -1,0 +1,274 @@
+---
+description: Generate comprehensive unit tests based on function analysis
+globs: 
+alwaysApply: false
+---
+# Rule: Unit Test Generation
+
+## Goal
+
+To guide an AI assistant in generating comprehensive unit tests based on a previously created function analysis document. The tests should cover all scenarios identified in the analysis and follow testing best practices.
+
+## Prerequisites
+
+- A function analysis document (created by `extract-functions.mdc`)
+- Source code file to be tested
+- Knowledge of the testing framework being used (Jest, Vitest, etc.)
+
+## Process
+
+1. **Load Analysis Document:** Read and understand the function analysis document
+2. **Identify Testing Framework:** Determine the testing framework and setup requirements
+3. **Generate Test Structure:** Create the basic test file structure with imports and setup
+4. **Generate Function Tests:** Create comprehensive tests for each function based on the analysis
+5. **Add Mock Implementations:** Generate necessary mocks and test utilities
+6. **Save Test File:** Save as `[source-filename].test.[extension]` alongside the source file
+
+## Test Generation Guidelines
+
+### Test File Structure
+```javascript
+// Imports and setup
+import { function1, function2 } from './source-file';
+import { jest } from '@jest/globals'; // or equivalent for your framework
+
+// Mock setup (if needed)
+jest.mock('external-dependency');
+
+// Test setup and utilities
+const mockSetup = () => { /* setup code */ };
+
+// Test suites grouped by function
+describe('FunctionName', () => {
+  // Tests for each function
+});
+```
+
+### For Each Function Generate:
+
+#### 1. Basic Test Structure
+```javascript
+describe('[FunctionName]', () => {
+  // Setup
+  beforeEach(() => {
+    // Reset mocks, setup test data
+  });
+
+  // Test cases here
+});
+```
+
+#### 2. Happy Path Tests
+- Test normal, expected usage
+- Test with typical input values
+- Verify expected return values and behavior
+
+#### 3. Edge Case Tests
+- Boundary values (empty strings, zero, null, undefined)
+- Maximum/minimum values
+- Special characters or unusual but valid inputs
+
+#### 4. Error Handling Tests
+- Invalid inputs
+- Error throwing scenarios  
+- Error message validation
+
+#### 5. Mock-Dependent Tests (if applicable)
+- Test with mocked dependencies
+- Verify mock calls and parameters
+- Test different mock return values
+
+### Test Naming Convention
+- Use descriptive test names: `should return user data when valid ID is provided`
+- Follow format: `should [expected behavior] when [conditions]`
+- Group related tests with nested `describe` blocks
+
+### Assertion Patterns
+
+#### For Return Values
+```javascript
+expect(result).toBe(expectedValue);
+expect(result).toEqual(expectedObject);
+expect(result).toMatchObject(partialMatch);
+```
+
+#### For Function Calls
+```javascript
+expect(mockFunction).toHaveBeenCalledWith(expectedArgs);
+expect(mockFunction).toHaveBeenCalledTimes(expectedCount);
+```
+
+#### For Errors
+```javascript
+expect(() => functionCall()).toThrow();
+expect(() => functionCall()).toThrow('Expected error message');
+```
+
+#### For Async Functions
+```javascript
+await expect(asyncFunction()).resolves.toBe(expectedValue);
+await expect(asyncFunction()).rejects.toThrow();
+```
+
+## Special Function Types
+
+### React Components
+- Test rendering with different props
+- Test event handlers
+- Test conditional rendering
+- Use React Testing Library patterns
+
+### Async Functions
+- Test successful async operations
+- Test error handling in async operations
+- Test timeout scenarios
+- Mock async dependencies
+
+### Higher-Order Functions
+- Test function composition
+- Test partial application
+- Test function factories
+
+### Class Methods
+- Test instance methods
+- Test static methods
+- Test method chaining
+- Test inheritance scenarios
+
+## Mock Generation Guidelines
+
+### External Dependencies
+```javascript
+// API calls
+jest.mock('./api-client', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+}));
+
+// Utility functions
+jest.mock('./utils', () => ({
+  helper: jest.fn(() => 'mocked-result'),
+}));
+```
+
+### Complex Objects
+```javascript
+const mockUser = {
+  id: 1,
+  name: 'Test User',
+  email: 'test@example.com',
+};
+```
+
+### Function Mocks
+```javascript
+const mockCallback = jest.fn();
+const mockAsyncFunction = jest.fn().mockResolvedValue('success');
+```
+
+## Test Data Generation
+
+Create realistic test data based on function requirements:
+```javascript
+const testData = {
+  validUser: { id: 1, name: 'John', email: 'john@test.com' },
+  invalidUser: { id: null, name: '', email: 'invalid-email' },
+  emptyData: {},
+  largeDataset: Array.from({ length: 1000 }, (_, i) => ({ id: i })),
+};
+```
+
+## Coverage Considerations
+
+Ensure tests cover:
+- All code paths (branches)
+- All function parameters
+- All return scenarios
+- All error conditions
+- All mocked dependencies
+
+## Quality Standards
+
+Generated tests should:
+- Be readable and maintainable
+- Run independently (no test interdependence)
+- Be fast and reliable
+- Follow the testing framework's best practices
+- Include clear setup and teardown
+
+## Output Structure
+
+```javascript
+/**
+ * Unit tests for [source-filename]
+ * Generated from function analysis on [date]
+ * Framework: [testing-framework]
+ */
+
+// Imports
+import { ... } from './source-file';
+import { ... } from 'testing-dependencies';
+
+// Mocks (if needed)
+jest.mock('external-dependency');
+
+// Test utilities and setup
+const testUtils = {
+  // Helper functions for tests
+};
+
+// Main test suites
+describe('[SourceFileName]', () => {
+  describe('[FunctionName1]', () => {
+    beforeEach(() => {
+      // Setup
+    });
+
+    afterEach(() => {
+      // Cleanup
+    });
+
+    it('should [behavior] when [condition]', () => {
+      // Test implementation
+    });
+
+    // More tests...
+  });
+
+  describe('[FunctionName2]', () => {
+    // More function tests...
+  });
+});
+```
+
+## Framework-Specific Instructions
+
+### Jest
+- Use `describe`, `it`, `expect`
+- Use `jest.fn()` for mocks
+- Use `beforeEach`, `afterEach` for setup/teardown
+
+### Vitest
+- Similar to Jest but import from `vitest`
+- Use `vi.fn()` for mocks
+- Support for ES modules
+
+### Testing Library (React)
+- Use `render`, `screen`, `fireEvent`
+- Test user interactions, not implementation details
+- Use `waitFor` for async operations
+
+## Final Instructions
+
+1. **Reference the Function Analysis:** Use all information from the analysis document
+2. **Be Comprehensive:** Cover all scenarios identified in the analysis
+3. **Follow Patterns:** Maintain consistency in test structure and naming
+4. **Include Comments:** Add helpful comments explaining complex test setups
+5. **Verify Imports:** Ensure all imports are correct and necessary
+6. **Ask for Clarification:** If the testing framework or specific requirements are unclear, ask the user
+
+## Output
+
+- **Format:** JavaScript/TypeScript test file
+- **Location:** Same directory as source file (or specified test directory)
+- **Filename:** `[source-filename].test.[js|ts|jsx|tsx]`

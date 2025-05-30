@@ -1,0 +1,179 @@
+---
+description: Extract and analyze functions from source code for unit test generation
+globs: 
+alwaysApply: false
+---
+# Rule: Function Extraction and Analysis
+
+## Goal
+
+To guide an AI assistant in analyzing source code files to identify all testable functions and their characteristics. The analysis will serve as the foundation for comprehensive unit test generation.
+
+## Process
+
+1. **Receive Source File:** The user provides a specific source code file to analyze.
+2. **Parse and Analyze:** The AI examines the code to identify all functions, methods, and testable units.
+3. **Categorize Functions:** Group functions by type, complexity, and testing requirements.
+4. **Generate Analysis Document:** Create a structured analysis document with detailed information about each function.
+5. **Save Analysis:** Save the document as `function-analysis-[filename].md` in the `/tests/analysis/` directory.
+
+## Analysis Criteria
+
+For each identified function, extract and document:
+
+### Basic Information
+- **Function Name:** The exact name of the function
+- **Function Type:** Regular function, arrow function, class method, async function, generator, etc.
+- **Location:** File path and line number range
+- **Export Status:** Is it exported? (default export, named export, internal)
+
+### Function Signature
+- **Parameters:** Name, type, default values, optional parameters
+- **Return Type:** What the function returns (inferred or explicit)
+- **Generic Parameters:** Any generic type parameters
+
+### Dependencies and Context
+- **External Dependencies:** Imported modules, libraries, or utilities used
+- **Internal Dependencies:** Other functions or variables from the same file
+- **Side Effects:** Does the function modify external state, make API calls, manipulate DOM, etc.
+- **Pure Function:** Is it a pure function (same input = same output, no side effects)?
+
+### Complexity Indicators
+- **Cyclomatic Complexity:** Rough estimate (simple, moderate, complex)
+- **Branching Logic:** Number of if/else, switch, ternary operators
+- **Loop Constructs:** Presence of for, while, map, filter, reduce operations
+- **Error Handling:** Try/catch blocks, error throwing
+
+### Testing Considerations
+- **Mockable Dependencies:** What needs to be mocked for testing
+- **Test Scenarios:** Suggested test cases (happy path, edge cases, error cases)
+- **Setup Requirements:** Any special setup needed for testing
+- **Async Considerations:** If async, what needs to be awaited or mocked
+
+## Output Structure
+
+The generated analysis document must follow this structure:
+
+```markdown
+# Function Analysis: [Filename]
+
+**File:** `[file-path]`  
+**Date:** [current-date]  
+**Total Functions Found:** [number]
+
+## Summary
+
+Brief overview of the file and its primary purpose.
+
+## Function Inventory
+
+### [Category] Functions
+- Total: [number]
+- Complexity: [simple/moderate/complex]
+
+## Detailed Function Analysis
+
+### 1. [Function Name]
+
+**Type:** [function-type]  
+**Location:** Lines [start-end]  
+**Export:** [export-status]  
+**Complexity:** [simple/moderate/complex]
+
+#### Signature
+```[language]
+[function-signature]
+```
+
+#### Parameters
+- `param1: type` - Description and constraints
+- `param2?: type` - Optional parameter description
+
+#### Returns
+- **Type:** `return-type`
+- **Description:** What the function returns
+
+#### Dependencies
+- **External:** `library1`, `library2`
+- **Internal:** `helper1()`, `utility2()`
+- **Side Effects:** [none/API calls/state mutations/etc.]
+
+#### Testing Scenarios
+1. **Happy Path:** [description of normal usage]
+2. **Edge Cases:** 
+   - [edge case 1]
+   - [edge case 2]
+3. **Error Cases:**
+   - [error scenario 1]
+   - [error scenario 2]
+
+#### Mock Requirements
+- [What needs to be mocked]
+- [Setup considerations]
+
+---
+
+[Repeat for each function]
+
+## Testing Strategy Recommendations
+
+### High Priority Functions
+List functions that are critical and need comprehensive testing.
+
+### Mock Strategy
+Recommended approach for mocking dependencies.
+
+### Test File Organization
+Suggested structure for organizing the generated tests.
+```
+
+## Special Considerations
+
+### React Components
+- Identify props, state, lifecycle methods, hooks
+- Note event handlers and their complexity
+- Consider component testing vs. unit testing approaches
+
+### Class Methods
+- Distinguish between public and private methods
+- Identify constructor logic and property initialization
+- Note inheritance and method overrides
+
+### Async Functions
+- Identify Promise-based operations
+- Note callback patterns
+- Consider timing and race condition scenarios
+
+### Higher-Order Functions
+- Identify curried functions and partial application
+- Note function composition patterns
+- Consider testing strategies for function factories
+
+## Quality Checks
+
+Before finalizing the analysis, verify:
+- All exported functions are identified
+- Complex functions have adequate scenario coverage
+- Mock requirements are clearly identified
+- Test priorities are established
+
+## Target Audience
+
+The analysis should be detailed enough for:
+- **Junior Developers:** Clear explanations of testing approaches
+- **Test Generation AI:** Structured data for automated test creation
+- **Code Reviewers:** Quick overview of function complexity and testing needs
+
+## Output
+
+- **Format:** Markdown (`.md`)
+- **Location:** `/tests/analysis/`
+- **Filename:** `function-analysis-[source-filename].md`
+
+## Final Instructions
+
+1. Be thorough in function identification - don't miss private or utility functions
+2. Prioritize functions based on complexity and importance
+3. Provide clear, actionable testing scenarios
+4. Consider the testing framework when suggesting mock strategies
+5. Ask the user about their preferred testing framework if not obvious from the codebase
